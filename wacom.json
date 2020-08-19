@@ -1,0 +1,6 @@
+{
+	"name": "Wacom Bamboo Connect Pen stylus",
+	"physical_dimension":		[ 14720, 9200 ],
+	"monitor_offset_top_left":	[ 1920, 0 ],
+	"tablet_width":				1000
+}
