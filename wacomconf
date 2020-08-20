@@ -103,6 +103,19 @@ class WacomConfigurator():
 				tablet_height = self._config["tablet_height"]
 				tablet_width = tablet_height * self._config["physical_dimension"][0] / self._config["physical_dimension"][1]
 			bottom_right = (self._config["screen_offset_top_left"][0] + tablet_width, self._config["screen_offset_top_left"][1] + tablet_height)
+
+			if bottom_right[0] > screen_resolution[0]:
+				tablet_width = screen_resolution[0] - self._config["screen_offset_top_left"][0]
+				tablet_height = tablet_width / self._config["physical_dimension"][0] * self._config["physical_dimension"][1]
+				bottom_right = (self._config["screen_offset_top_left"][0] + tablet_width, self._config["screen_offset_top_left"][1] + tablet_height)
+				print("Warning: X axis would exceed screen size. Clamped X values to fit screen.")
+
+			if bottom_right[1] > screen_resolution[1]:
+				tablet_height = screen_resolution[1] - self._config["screen_offset_top_left"][1]
+				tablet_width = tablet_height * self._config["physical_dimension"][0] / self._config["physical_dimension"][1]
+				bottom_right = (self._config["screen_offset_top_left"][0] + tablet_width, self._config["screen_offset_top_left"][1] + tablet_height)
+				print("Warning: Y axis would exceed screen size. Clamped Y values to fit screen.")
+
 			if self._args.verbose >= 1:
 				print("Tablet offset: Upper left corner at %d, %d, lower right corner at %d, %d" % (self._config["screen_offset_top_left"][0], self._config["screen_offset_top_left"][1], bottom_right[0], bottom_right[1]))
 				print("Tablet mapping screen area: %d x %d pixels (ratio %s)" % (tablet_width, tablet_height, self._ratio_str((tablet_width, tablet_height))))
