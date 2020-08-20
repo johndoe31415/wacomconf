@@ -43,9 +43,9 @@ configuration JSON file:
 
 ```json
 {
-    "name": "Wacom Bamboo Connect Pen stylus",
+    "name":                     "Wacom Bamboo Connect Pen stylus",
     "physical_dimension":       [ 14720, 9200 ],
-    "screen_offset_top_left":  [ 1920, 0 ],
+    "screen_offset_top_left":   [ 1920, 0 ],
     "tablet_width":             1000
 }
 ```
