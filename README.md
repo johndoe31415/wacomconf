@@ -45,7 +45,7 @@ configuration JSON file:
 {
     "name": "Wacom Bamboo Connect Pen stylus",
     "physical_dimension":       [ 14720, 9200 ],
-    "monitor_offset_top_left":  [ 1920, 0 ],
+    "screen_offset_top_left":  [ 1920, 0 ],
     "tablet_width":             1000
 }
 ```
@@ -58,14 +58,14 @@ Then, put the configuration in effect:
 
 ```
 $ ./wacomconf -vv wacom.json
-Montior resolution: 5760 x 1080 (16 : 3)
-Tablet aspect ratio: 8 : 5
-Tablet offset (upper left corner): 1920, 0
-Tablet resolution in pixels: 1000 x 625 (8 : 5)
-Tablet offset (lower right corner): 2920, 625
+Screen resolution: 5760 x 1080 (ratio 16 : 3)
+Tablet physical aspect ratio: 8 : 5
+Tablet offset: Upper left corner at 1920, 0, lower right corner at 2920, 625
+Tablet mapping screen area: 1000 x 625 pixels (ratio 8 : 5)
 Transformation matrix: Xform<X Linear<14.720 x + -28262.400>, Y Linear<14.720 x + 0.000>>
-Mapped upper left of monitor in tablet coordinates: -28262, 0
-Mapped lower right of monitor in tablet coordinates: 56525, 15898
+Mapped upper left of screen in tablet coordinates: -28262, 0
+Mapped lower right of screen in tablet coordinates: 56525, 15898
+Command: xsetwacom --set 'Wacom Bamboo Connect Pen stylus' Area '-28262 0 56525 15898'
 ```
 
 You will see that wacomconf has reconfigured the tablet to be from upper left

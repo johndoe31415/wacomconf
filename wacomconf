@@ -26,6 +26,7 @@ import re
 import subprocess
 import fractions
 from FriendlyArgumentParser import FriendlyArgumentParser
+from CmdlineEscape import CmdlineEscape
 
 parser = FriendlyArgumentParser(description = "Frontend to configure Wacom tablets easily.")
 parser.add_argument("-r", "--reset", action = "store_true", help = "Try to reset Wacom tablet resolution to default.")
@@ -72,7 +73,7 @@ class WacomConfigurator():
 		with open(self._args.conf_file) as f:
 			self._config = json.load(f)
 
-	def _get_monitor_resolution(self):
+	def _get_screen_resolution(self):
 		output = subprocess.check_output([ "xdpyinfo" ]).decode()
 		match = self._XDPYINFO_DIMENSIONS.search(output)
 		match = match.groupdict()
@@ -83,15 +84,15 @@ class WacomConfigurator():
 		return "%d : %d" % (fract.numerator, fract.denominator)
 
 	def _reset(self):
-		# "Area" gives point on tablet that corresponds to upper left monitor
-		# coordinates and lower right monitor coordinates
+		# "Area" gives point on tablet that corresponds to upper left screen
+		# coordinates and lower right screen coordinates
 		subprocess.check_call([ "xsetwacom", "--set", self._config["name"], "Area", "0 0 %d %d" % (self._config["physical_dimension"][0], self._config["physical_dimension"][1])])
 
 	def run(self):
-		monitor_resolution = self._get_monitor_resolution()
+		screen_resolution = self._get_screen_resolution()
 		if self._args.verbose >= 1:
-			print("Montior resolution: %d x %d (%s)" % (monitor_resolution[0], monitor_resolution[1], self._ratio_str(monitor_resolution)))
-			print("Tablet aspect ratio: %s" % (self._ratio_str(self._config["physical_dimension"])))
+			print("Screen resolution: %d x %d (ratio %s)" % (screen_resolution[0], screen_resolution[1], self._ratio_str(screen_resolution)))
+			print("Tablet physical aspect ratio: %s" % (self._ratio_str(self._config["physical_dimension"])))
 		if self._args.reset:
 			self._reset()
 		else:
@@ -101,22 +102,24 @@ class WacomConfigurator():
 			elif "tablet_height" in self._config:
 				tablet_height = self._config["tablet_height"]
 				tablet_width = tablet_height * self._config["physical_dimension"][0] / self._config["physical_dimension"][1]
-			bottom_right = (self._config["monitor_offset_top_left"][0] + tablet_width, self._config["monitor_offset_top_left"][1] + tablet_height)
+			bottom_right = (self._config["screen_offset_top_left"][0] + tablet_width, self._config["screen_offset_top_left"][1] + tablet_height)
 			if self._args.verbose >= 1:
-				print("Tablet offset (upper left corner): %d, %d" % (self._config["monitor_offset_top_left"][0], self._config["monitor_offset_top_left"][1]))
-				print("Tablet resolution in pixels: %d x %d (%s)" % (tablet_width, tablet_height, self._ratio_str((tablet_width, tablet_height))))
-				print("Tablet offset (lower right corner): %d, %d" % (bottom_right[0], bottom_right[1]))
+				print("Tablet offset: Upper left corner at %d, %d, lower right corner at %d, %d" % (self._config["screen_offset_top_left"][0], self._config["screen_offset_top_left"][1], bottom_right[0], bottom_right[1]))
+				print("Tablet mapping screen area: %d x %d pixels (ratio %s)" % (tablet_width, tablet_height, self._ratio_str((tablet_width, tablet_height))))
 
-			xform = TransformationMatrix.create_from_mapping(self._config["monitor_offset_top_left"], (0, 0), bottom_right, self._config["physical_dimension"])
+			xform = TransformationMatrix.create_from_mapping(self._config["screen_offset_top_left"], (0, 0), bottom_right, self._config["physical_dimension"])
 			area1 = xform.apply((0, 0))
-			area2 = xform.apply(monitor_resolution)
+			area2 = xform.apply(screen_resolution)
 			if self._args.verbose >= 2:
 				print("Transformation matrix: %s" % (xform))
-				print("Mapped upper left of monitor in tablet coordinates: %.0f, %.0f" % (area1[0], area1[1]))
-				print("Mapped lower right of monitor in tablet coordinates: %.0f, %.0f" % (area2[0], area2[1]))
+				print("Mapped upper left of screen in tablet coordinates: %.0f, %.0f" % (area1[0], area1[1]))
+				print("Mapped lower right of screen in tablet coordinates: %.0f, %.0f" % (area2[0], area2[1]))
 
 			area_str = "%.0f %.0f %.0f %.0f" % (area1[0], area1[1], area2[0], area2[1])
-			subprocess.check_call([ "xsetwacom", "--set", self._config["name"], "Area", area_str ])
+			cmd = [ "xsetwacom", "--set", self._config["name"], "Area", area_str ]
+			subprocess.check_call(cmd)
+			if self._args.verbose >= 3:
+				print("Command: %s" % (CmdlineEscape().cmdline(cmd)))
 
 conf = WacomConfigurator(args)
 conf.run()
